@@ -1,0 +1,17 @@
+{
+  "name": "pet-gacha",
+  "version": "1.0.0",
+  "description": "毛绒伙伴 - 宠物抽卡游戏",
+  "scripts": {
+    "start": "npx serve .",
+    "build": "echo 'Static site - no build needed'",
+    "vercel-build": "echo 'Static site ready for deployment'"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>毛绒伙伴 - 宠物抽卡</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+    <!-- 登录页面 -->
+    <div id="login-page" class="page active">
+        <div class="login-scene">
+            <div class="login-pets-container" id="login-pets-container"></div>
+            <div class="login-content">
+                <h1 class="login-title">🐾 毛绒伙伴</h1>
+                <p class="login-subtitle">欢迎来到萌宠世界</p>
+                <div class="login-form">
+                    <input type="text" class="login-input" id="login-username" value="毛绒绒" placeholder="请输入你的名字">
+                    <button class="login-btn" id="btn-login">✨ 开始冒险</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 首页 - PRD 2.2布局 -->
+    <div id="home-page" class="page">
+        <div class="main-layout">
+            <!-- 顶部资源栏 -->
+            <div class="top-bar">
+                <div class="resource-bar">
+                    <div class="resource-item">
+                        <span class="resource-icon">💎</span>
+                        <span class="resource-value" id="diamond-count">9999</span>
+                        <button class="resource-add-btn" id="btn-add-diamond-inline" title="添加钻石">+</button>
+                    </div>
+                    <div class="resource-item">
+                        <span class="resource-icon">🪙</span>
+                        <span class="resource-value" id="coin-count">50000</span>
+                    </div>
+                    <div class="resource-item">
+                        <span class="resource-icon">💙</span>
+                        <span class="resource-value" id="friendship-count">500</span>
+                    </div>
+                </div>
+                <div class="top-actions">
+                    <button class="top-btn" id="btn-collection">📖</button>
+                    <button class="top-btn" id="btn-setting">⚙️</button>
+                </div>
+            </div>
+
+            <!-- 添加钻石弹窗 -->
+            <div id="add-diamond-modal" class="modal hidden">
+                <div class="modal-content">
+                    <h3 class="modal-title">💎 添加钻石</h3>
+                    <div class="modal-body">
+                        <label class="modal-label">数量：</label>
+                        <input type="number" class="modal-input" id="diamond-amount" value="100" min="1" max="99999">
+                        <div class="modal-presets">
+                            <button class="preset-btn" data-amount="100">100</button>
+                            <button class="preset-btn" data-amount="500">500</button>
+                            <button class="preset-btn" data-amount="1000">1000</button>
+                            <button class="preset-btn" data-amount="9999">9999</button>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="modal-btn cancel" id="btn-cancel-diamond">取消</button>
+                        <button class="modal-btn confirm" id="btn-confirm-diamond">确认添加</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 主内容区 -->
+            <div class="main-content">
+                <!-- 左侧卡池列表 -->
+                <div class="left-panel">
+                    <div class="pool-card active" data-pool="limited" id="pool-limited">
+                        <div class="pool-icon">🐶</div>
+                        <div class="pool-name">☆限定UP☆</div>
+                        <div class="pool-badge">UP!</div>
+                    </div>
+                    <div class="pool-card" data-pool="standard" id="pool-standard">
+                        <div class="pool-icon">🐕</div>
+                        <div class="pool-name">☆常驻☆</div>
+                    </div>
+                    <div class="pool-card" data-pool="friendship" id="pool-friendship">
+                        <div class="pool-icon">💙</div>
+                        <div class="pool-name">☆友情☆</div>
+                    </div>
+                    <div class="pool-card" data-pool="coin" id="pool-coin">
+                        <div class="pool-icon">🪙</div>
+                        <div class="pool-name">☆金币☆</div>
+                        <div class="pool-badge">NEW!</div>
+                    </div>
+                </div>
+
+                <!-- 中央展示区 -->
+                <div class="center-panel">
+                    <div class="pool-header">
+                        <h2 class="pool-title" id="current-pool-name">☆限定UP☆</h2>
+                        <p class="pool-desc" id="current-pool-desc">奶萌比格 UP率提升50%</p>
+                    </div>
+
+                    <div class="pet-display" id="pet-display">
+                        <button class="nav-arrow nav-arrow-left" id="prev-pet" aria-label="上一个宠物">
+                            <span class="arrow-icon">&#10094;</span>
+                        </button>
+                        <div class="pet-showcase">
+                            <img src="image/14_beagle.png" alt="博美" class="pet-image" id="preview-image">
+                            <div class="pet-info">
+                                <div class="pet-name" id="preview-name">博美</div>
+                                <div class="pet-level" id="preview-level">Lv.1</div>
+                                <div class="pet-rarity" id="preview-rarity">S级稀有</div>
+                                <div class="pet-personality" id="preview-personality">
+                                    <span class="tag">🏃 活泼</span>
+                                    <span class="tag">❤️ 粘人</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="nav-arrow nav-arrow-right" id="next-pet" aria-label="下一个宠物">
+                            <span class="arrow-icon">&#10095;</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 右侧按钮区 -->
+                <div class="right-panel">
+                    <button class="draw-btn single-draw" id="single-draw">
+                        <span class="btn-text">单抽 ×1</span>
+                        <span class="btn-cost" id="single-cost">100💎</span>
+                    </button>
+
+                    <button class="draw-btn ten-draw" id="ten-draw">
+                        <span class="btn-text">十连 ×10</span>
+                        <span class="btn-cost" id="ten-cost">900💎</span>
+                        <span class="discount-tag">🔥折扣</span>
+                    </button>
+
+                    <div class="action-buttons">
+                        <button class="action-btn" id="btn-detail">
+                            <span class="btn-text">详情</span>
+                            <span class="status-dot"></span>
+                        </button>
+                        <button class="action-btn" id="btn-skill">
+                            <span class="btn-text">技能</span>
+                            <span class="status-dot"></span>
+                        </button>
+                        <button class="action-btn" id="btn-evolve">
+                            <span class="btn-text">进化</span>
+                            <span class="status-dot"></span>
+                        </button>
+                        <button class="action-btn" id="btn-adventure">
+                            <span class="btn-text">探险</span>
+                            <span class="status-dot"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 底部操作栏 -->
+            <div class="bottom-bar">
+                <button class="bottom-btn" id="btn-shop-bottom">
+                    <span class="btn-icon">🛒</span>
+                    <span class="btn-label">商店</span>
+                </button>
+                <button class="bottom-btn" id="btn-reward">
+                    <span class="btn-icon">📦</span>
+                    <span class="btn-label">奖励</span>
+                </button>
+                <button class="bottom-btn" id="btn-nurture">
+                    <span class="btn-icon">❤️</span>
+                    <span class="btn-label">养成</span>
+                </button>
+                <button class="bottom-btn" id="btn-coin-system">
+                    <span class="btn-icon">💰</span>
+                    <span class="btn-label">金币</span>
+                </button>
+                <button class="bottom-btn" id="btn-evolution-system">
+                    <span class="btn-icon">🌟</span>
+                    <span class="btn-label">进化</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 抽卡动画页面 -->
+    <div id="gacha-page" class="page">
+        <div class="gacha-scene">
+            <button class="back-btn" id="back-from-gacha">
+                <span class="back-arrow">←</span>
+                <span class="back-text">返回</span>
+            </button>
+
+            <div class="magic-effect">
+                <div class="magic-circle">
+                    <div class="circle-ring ring-1"></div>
+                    <div class="circle-ring ring-2"></div>
+                    <div class="circle-ring ring-3"></div>
+                </div>
+                <div class="sparkles-container" id="sparkles"></div>
+            </div>
+
+            <div class="summoning-dog" id="summoning-dog">
+                <div class="dog-glow"></div>
+                <span class="summon-emoji">🐕</span>
+            </div>
+
+            <p class="summoning-text">正在召唤中...</p>
+        </div>
+    </div>
+
+    <!-- 十连抽动画页面 -->
+    <div id="gacha-ten-page" class="page">
+        <div class="gacha-scene">
+            <button class="back-btn" id="back-from-gacha-ten">
+                <span class="back-arrow">←</span>
+                <span class="back-text">返回</span>
+            </button>
+
+            <div class="magic-effect">
+                <div class="magic-circle">
+                    <div class="circle-ring ring-1"></div>
+                    <div class="circle-ring ring-2"></div>
+                    <div class="circle-ring ring-3"></div>
+                </div>
+                <div class="sparkles-container" id="sparkles-ten"></div>
+            </div>
+
+            <div class="summoning-dog" id="summoning-dog-ten">
+                <div class="dog-glow"></div>
+                <span class="summon-emoji">🎁</span>
+            </div>
+
+            <p class="summoning-text">十连召唤中...</p>
+            <p class="summoning-subtext">好运正在聚集 ✨</p>
+        </div>
+    </div>
+
+    <!-- 结果展示页面 -->
+    <div id="result-page" class="page">
+        <div class="result-scene">
+            <button class="back-btn" id="back-from-result">
+                <span class="back-arrow">←</span>
+                <span class="back-text">返回</span>
+            </button>
+
+            <div class="confetti-container" id="confetti"></div>
+
+            <div class="result-content">
+                <div class="dog-showcase">
+                    <div class="dog-card">
+                        <div class="dog-image-container">
+                            <img src="" alt="" class="dog-result-image" id="result-image">
+                            <span class="dog-rarity-badge" id="result-rarity-badge">S级</span>
+                        </div>
+                        <h2 class="dog-name" id="result-name">宠物名称</h2>
+                        <div class="dog-stars" id="result-stars">⭐⭐⭐⭐⭐</div>
+                        <div class="dog-personality" id="result-personality"></div>
+                    </div>
+                </div>
+
+                <div class="dog-details">
+                    <div class="detail-section">
+                        <h3 class="section-title">📋 基本信息</h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">品种</span>
+                                <span class="info-value" id="result-breed">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">稀有度</span>
+                                <span class="info-value rarity-value" id="result-rarity">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">性格</span>
+                                <span class="info-value" id="result-personality-value">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 性格效果展示（PRD 5.4）-->
+                    <div class="detail-section personality-section">
+                        <h3 class="section-title">🎭 性格效果</h3>
+                        <div class="personality-list" id="personality-effects">
+                            <!-- 动态生成性格效果 -->
+                        </div>
+                    </div>
+
+                    <!-- 技能展示（PRD 8）-->
+                    <div class="detail-section skills-section">
+                        <h3 class="section-title">⚡ 技能列表</h3>
+                        <div class="skills-list" id="skills-list">
+                            <!-- 动态生成技能 -->
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3 class="section-title">🎯 特点介绍</h3>
+                        <p class="feature-text" id="result-feature">-</p>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3 class="section-title">📊 属性</h3>
+                        <div class="stats-container">
+                            <div class="stat-bar">
+                                <span class="stat-label">可爱</span>
+                                <div class="stat-progress">
+                                    <div class="stat-fill" id="stat-cute"></div>
+                                </div>
+                                <span class="stat-value" id="stat-cute-value">0</span>
+                            </div>
+                            <div class="stat-bar">
+                                <span class="stat-label">活跃</span>
+                                <div class="stat-progress">
+                                    <div class="stat-fill" id="stat-active"></div>
+                                </div>
+                                <span class="stat-value" id="stat-active-value">0</span>
+                            </div>
+                            <div class="stat-bar">
+                                <span class="stat-label">忠诚</span>
+                                <div class="stat-progress">
+                                    <div class="stat-fill" id="stat-loyal"></div>
+                                </div>
+                                <span class="stat-value" id="stat-loyal-value">0</span>
+                            </div>
+                            <div class="stat-bar">
+                                <span class="stat-label">聪明</span>
+                                <div class="stat-progress">
+                                    <div class="stat-fill" id="stat-smart"></div>
+                                </div>
+                                <span class="stat-value" id="stat-smart-value">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-actions">
+                <button class="action-btn draw-again-btn" id="draw-again">
+                    <span>🎁</span>
+                    <span>再抽一次</span>
+                </button>
+                <button class="action-btn collect-btn" id="collect-dog">
+                    <span>💖</span>
+                    <span>收入囊中</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 十连抽结果页面 -->
+    <div id="ten-result-page" class="page">
+        <div class="ten-result-scene">
+            <button class="back-btn" id="back-from-ten-result">
+                <span class="back-arrow">←</span>
+                <span class="back-text">返回</span>
+            </button>
+
+            <div class="confetti-container" id="confetti-ten"></div>
+
+            <h2 class="ten-result-title">🎉 十连召唤结果</h2>
+
+            <div class="ten-summary" id="ten-summary"></div>
+
+            <div class="ten-result-grid" id="ten-result-grid"></div>
+
+            <div class="ten-result-actions">
+                <button class="action-btn draw-again-btn" id="draw-again-ten">
+                    <span>🎁</span>
+                    <span>再来十连</span>
+                </button>
+                <button class="action-btn collect-btn" id="collect-all-ten">
+                    <span>💖</span>
+                    <span>全部收下</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图鉴页面 -->
+    <div id="collection-page" class="page">
+        <div class="collection-scene">
+            <button class="back-btn" id="back-from-collection">
+                <span class="back-arrow">←</span>
+                <span class="back-text">返回</span>
+            </button>
+
+            <h2 class="collection-title">📚 我的图鉴</h2>
+            <p class="collection-stats">已收集 <strong id="collected-count">0</strong> / <strong id="total-count">15</strong> 只萌宠</p>
+
+            <div class="collection-grid" id="collection-grid"></div>
+        </div>
+    </div>
+
+    <!-- 商店页面 -->
+    <div id="shop-page" class="page">
+        <div class="shop-scene">
+            <button class="back-btn" id="back-from-shop">
+                <span class="back-arrow">←</span>
+                <span class="back-text">返回</span>
+            </button>
+
+            <h2 class="shop-title">🏪 商店</h2>
+
+            <div class="shop-items">
+                <div class="shop-item">
+                    <span class="shop-icon">🎫</span>
+                    <span class="shop-name">召唤券 x1</span>
+                    <button class="shop-buy" data-item="ticket" data-cost="100">100💎</button>
+                </div>
+                <div class="shop-item">
+                    <span class="shop-icon">🎫</span>
+                    <span class="shop-name">召唤券 x10</span>
+                    <button class="shop-buy" data-item="ticket10" data-cost="900">900💎</button>
+                </div>
+                <div class="shop-item">
+                    <span class="shop-icon">💎</span>
+                    <span class="shop-name">钻石 x100</span>
+                    <button class="shop-buy" data-item="diamond" data-cost="1000">1000🪙</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 任务页面 -->
+    <div id="quest-page" class="page">
+        <div class="quest-scene">
+            <button class="back-btn" id="back-from-quest">
+                <span class="back-arrow">←</span>
+                <span class="back-text">返回</span>
+            </button>
+
+            <h2 class="quest-title">📜 每日任务</h2>
+
+            <div class="quest-list">
+                <div class="quest-item">
+                    <span class="quest-icon">🎁</span>
+                    <div class="quest-info">
+                        <span class="quest-name">召唤3次</span>
+                        <span class="quest-desc">进行3次宠物召唤</span>
+                    </div>
+                    <div class="quest-reward">
+                        <span>50🪙</span>
+                        <button class="quest-claim" data-quest="1">领取</button>
+                    </div>
+                </div>
+                <div class="quest-item">
+                    <span class="quest-icon">❤️</span>
+                    <div class="quest-info">
+                        <span class="quest-name">喂食5次</span>
+                        <span class="quest-desc">给宠物喂食5次</span>
+                    </div>
+                    <div class="quest-reward">
+                        <span>30🪙</span>
+                        <button class="quest-claim" data-quest="2">领取</button>
+                    </div>
+                </div>
+                <div class="quest-item">
+                    <span class="quest-icon">🗺️</span>
+                    <div class="quest-info">
+                        <span class="quest-name">探险2次</span>
+                        <span class="quest-desc">带宠物探险2次</span>
+                    </div>
+                    <div class="quest-reward">
+                        <span>100🪙</span>
+                        <button class="quest-claim" data-quest="3">领取</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 养成页面 -->
+    <div id="nurture-page" class="page">
+        <div class="nurture-scene">
+            <button class="back-btn" id="back-from-nurture">
+                <span class="back-arrow">←</span>
+                <span class="back-text">返回</span>
+            </button>
+
+            <h2 class="nurture-title">❤️ 宠物养成</h2>
+
+            <div class="nurture-content">
+                <!-- 宠物选择区 -->
+                <div class="nurture-pet-selector" id="nurture-pet-selector">
+                    <p class="empty-tip">暂无宠物，请先进行召唤！</p>
+                </div>
+
+                <!-- 养成面板 -->
+                <div class="nurture-panel" id="nurture-panel" style="display:none;">
+                    <div class="nurture-pet-card">
+                        <img src="" alt="" class="nurture-pet-image" id="nurture-pet-image">
+                        <div class="nurture-pet-info">
+                            <h3 class="nurture-pet-name" id="nurture-pet-name">-</h3>
+                            <span class="nurture-pet-level" id="nurture-pet-level">Lv.1</span>
+                            <div class="nurture-pet-personality" id="nurture-pet-personality"></div>
+                        </div>
+                    </div>
+
+                    <!-- 属性条 -->
+                    <div class="nurture-stats">
+                        <div class="nurture-stat">
+                            <span class="nurture-stat-label">🍖 饱食度</span>
+                            <div class="nurture-stat-bar">
+                                <div class="nurture-stat-fill" id="nurture-hunger-bar"></div>
+                            </div>
+                            <span class="nurture-stat-value" id="nurture-hunger-value">0</span>
+                        </div>
+                        <div class="nurture-stat">
+                            <span class="nurture-stat-label">😊 心情值</span>
+                            <div class="nurture-stat-bar">
+                                <div class="nurture-stat-fill" id="nurture-mood-bar"></div>
+                            </div>
+                            <span class="nurture-stat-value" id="nurture-mood-value">0</span>
+                        </div>
+                        <div class="nurture-stat">
+                            <span class="nurture-stat-label">⚡ 体力值</span>
+                            <div class="nurture-stat-bar">
+                                <div class="nurture-stat-fill" id="nurture-energy-bar"></div>
+                            </div>
+                            <span class="nurture-stat-value" id="nurture-energy-value">0</span>
+                        </div>
+                        <div class="nurture-stat">
+                            <span class="nurture-stat-label">❤️ 亲密度</span>
+                            <div class="nurture-stat-bar">
+                                <div class="nurture-stat-fill" id="nurture-love-bar"></div>
+                            </div>
+                            <span class="nurture-stat-value" id="nurture-love-value">0</span>
+                        </div>
+                    </div>
+
+                    <!-- 经验条 -->
+                    <div class="exp-section">
+                        <span class="exp-label">📈 经验值</span>
+                        <div class="exp-bar">
+                            <div class="exp-fill" id="nurture-exp-bar"></div>
+                        </div>
+                        <span class="exp-value" id="nurture-exp-value">0 / 100</span>
+                    </div>
+
+                    <!-- 养成操作按钮 -->
+                    <div class="nurture-actions">
+                        <button class="nurture-btn feed-btn" id="btn-feed" data-action="feed">
+                            <span class="nurture-btn-icon">🍖</span>
+                            <span class="nurture-btn-text">喂食</span>
+                            <span class="nurture-btn-cost">-20🪙</span>
+                        </button>
+                        <button class="nurture-btn play-btn" id="btn-play" data-action="play">
+                            <span class="nurture-btn-icon">🎾</span>
+                            <span class="nurture-btn-text">玩耍</span>
+                            <span class="nurture-btn-cost">-10🪙</span>
+                        </button>
+                        <button class="nurture-btn train-btn" id="btn-train" data-action="train">
+                            <span class="nurture-btn-icon">💪</span>
+                            <span class="nurture-btn-text">训练</span>
+                            <span class="nurture-btn-cost">-30🪙</span>
+                        </button>
+                        <button class="nurture-btn rest-btn" id="btn-rest" data-action="rest">
+                            <span class="nurture-btn-icon">😴</span>
+                            <span class="nurture-btn-text">休息</span>
+                            <span class="nurture-btn-cost">免费</span>
+                        </button>
+                    </div>
+
+                    <!-- 技能学习区域 -->
+                    <div class="skills-learn-section" id="skills-learn-section">
+                        <h3 class="section-title">📚 技能学习</h3>
+                        <div class="skills-list" id="nurture-skills-list"></div>
+                    </div>
+
+                    <!-- 进化信息 -->
+                    <div class="evolution-info" id="evolution-info"></div>
+
+                    <!-- 进化按钮 -->
+                    <button class="evolve-action-btn" id="btn-evolve-action" style="display:none;">
+                        <span class="evolve-icon">🌟</span>
+                        <span class="evolve-text">立即进化</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 金币系统页面 -->
+    <div id="coin-system-page" class="page">
+        <div class="coin-scene">
+            <button class="back-btn" id="back-from-coin">
+                <span class="back-arrow">←</span>
+                <span class="back-text">返回</span>
+            </button>
+
+            <h2 class="coin-title">💰 金币中心</h2>
+
+            <div class="coin-content">
+                <!-- 金币总览 -->
+                <div class="coin-overview">
+                    <div class="coin-balance-card">
+                        <span class="coin-balance-icon">🪙</span>
+                        <div class="coin-balance-info">
+                            <span class="coin-balance-label">当前金币</span>
+                            <span class="coin-balance-value" id="coin-balance-value">0</span>
+                        </div>
+                    </div>
+                    <div class="coin-income-card">
+                        <span class="coin-income-icon">📈</span>
+                        <div class="coin-income-info">
+                            <span class="coin-income-label">今日收入</span>
+                            <span class="coin-income-value" id="coin-income-value">+0</span>
+                        </div>
+                    </div>
+                    <div class="coin-expense-card">
+                        <span class="coin-expense-icon">📉</span>
+                        <div class="coin-expense-info">
+                            <span class="coin-expense-label">今日支出</span>
+                            <span class="coin-expense-value" id="coin-expense-value">-0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 金币获取途径 -->
+                <div class="coin-sources">
+                    <h3 class="section-title">💎 金币获取</h3>
+                    <div class="source-grid">
+                        <div class="source-card">
+                            <span class="source-icon">🎁</span>
+                            <span class="source-name">每日签到</span>
+                            <span class="source-reward">+100🪙</span>
+                            <button class="source-btn" id="btn-checkin">领取</button>
+                        </div>
+                        <div class="source-card">
+                            <span class="source-icon">🗺️</span>
+                            <span class="source-name">探险奖励</span>
+                            <span class="source-reward">+50-150🪙</span>
+                            <button class="source-btn" id="btn-adventure-reward">去探险</button>
+                        </div>
+                        <div class="source-card">
+                            <span class="source-icon">🏆</span>
+                            <span class="source-name">任务奖励</span>
+                            <span class="source-reward">+30-100🪙</span>
+                            <button class="source-btn" id="btn-task-reward">做任务</button>
+                        </div>
+                        <div class="source-card">
+                            <span class="source-icon">💎</span>
+                            <span class="source-name">钻石兑换</span>
+                            <span class="source-reward">1💎=10🪙</span>
+                            <button class="source-btn" id="btn-exchange">兑换</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 消费记录 -->
+                <div class="coin-records">
+                    <h3 class="section-title">📋 消费记录</h3>
+                    <div class="records-list" id="coin-records-list">
+                        <div class="record-item">
+                            <span class="record-type">🍖 喂食</span>
+                            <span class="record-amount expense">-20🪙</span>
+                            <span class="record-time">刚刚</span>
+                        </div>
+                        <div class="record-item">
+                            <span class="record-type">🎁 每日签到</span>
+                            <span class="record-amount income">+100🪙</span>
+                            <span class="record-time">今天 09:00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 进化系统页面 -->
+    <div id="evolution-page" class="page">
+        <div class="evolution-scene">
+            <button class="back-btn" id="back-from-evolution">
+                <span class="back-arrow">←</span>
+                <span class="back-text">返回</span>
+            </button>
+
+            <h2 class="evolution-title">🌟 宠物进化</h2>
+
+            <div class="evolution-content">
+                <!-- 宠物选择 -->
+                <div class="evolution-pet-selector" id="evolution-pet-selector">
+                    <p class="empty-tip">暂无可进化的宠物</p>
+                </div>
+
+                <!-- 进化展示 -->
+                <div class="evolution-display" id="evolution-display" style="display:none;">
+                    <!-- 进化前后对比 -->
+                    <div class="evolution-compare">
+                        <div class="evolution-before">
+                            <div class="evolution-pet-card">
+                                <img src="" alt="" class="evolution-pet-image" id="evo-before-image">
+                                <span class="evolution-pet-name" id="evo-before-name">-</span>
+                                <span class="evolution-pet-level" id="evo-before-level">Lv.1</span>
+                            </div>
+                            <span class="evolution-label">当前形态</span>
+                        </div>
+
+                        <div class="evolution-arrow">
+                            <span class="arrow-icon">➡️</span>
+                            <span class="evolution-requirement" id="evo-requirement">需要 Lv.5 + 亲密度50</span>
+                        </div>
+
+                        <div class="evolution-after">
+                            <div class="evolution-pet-card locked" id="evo-after-card">
+                                <img src="" alt="" class="evolution-pet-image" id="evo-after-image">
+                                <span class="evolution-pet-name" id="evo-after-name">-</span>
+                                <span class="evolution-pet-level" id="evo-after-level">Lv.1</span>
+                                <span class="evolution-locked-icon">🔒</span>
+                            </div>
+                            <span class="evolution-label">进化形态</span>
+                        </div>
+                    </div>
+
+                    <!-- 进化条件 -->
+                    <div class="evolution-conditions">
+                        <h3 class="section-title">📋 进化条件</h3>
+                        <div class="condition-list">
+                            <div class="condition-item" id="condition-level">
+                                <span class="condition-icon">📊</span>
+                                <span class="condition-name">等级要求</span>
+                                <span class="condition-value" id="condition-level-value">Lv.5 / Lv.1</span>
+                                <span class="condition-status" id="condition-level-status">❌</span>
+                            </div>
+                            <div class="condition-item" id="condition-love">
+                                <span class="condition-icon">❤️</span>
+                                <span class="condition-name">亲密度要求</span>
+                                <span class="condition-value" id="condition-love-value">50 / 60</span>
+                                <span class="condition-status" id="condition-love-status">✅</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 属性对比 -->
+                    <div class="evolution-stats-compare">
+                        <h3 class="section-title">📊 属性提升</h3>
+                        <div class="stats-compare-grid">
+                            <div class="stat-compare-item">
+                                <span class="stat-name">可爱</span>
+                                <span class="stat-before" id="stat-cute-before">85</span>
+                                <span class="stat-arrow">➡️</span>
+                                <span class="stat-after" id="stat-cute-after">95</span>
+                                <span class="stat-bonus">+10</span>
+                            </div>
+                            <div class="stat-compare-item">
+                                <span class="stat-name">活跃</span>
+                                <span class="stat-before" id="stat-active-before">75</span>
+                                <span class="stat-arrow">➡️</span>
+                                <span class="stat-after" id="stat-active-after">85</span>
+                                <span class="stat-bonus">+10</span>
+                            </div>
+                            <div class="stat-compare-item">
+                                <span class="stat-name">忠诚</span>
+                                <span class="stat-before" id="stat-loyal-before">70</span>
+                                <span class="stat-arrow">➡️</span>
+                                <span class="stat-after" id="stat-loyal-after">85</span>
+                                <span class="stat-bonus">+15</span>
+                            </div>
+                            <div class="stat-compare-item">
+                                <span class="stat-name">聪明</span>
+                                <span class="stat-before" id="stat-smart-before">65</span>
+                                <span class="stat-arrow">➡️</span>
+                                <span class="stat-after" id="stat-smart-after">80</span>
+                                <span class="stat-bonus">+15</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 进化按钮 -->
+                    <button class="evolution-action-btn" id="btn-do-evolve">
+                        <span class="evolve-icon">✨</span>
+                        <span class="evolve-text">开始进化</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast提示 -->
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="supabase.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+/* ==================== 保底显示区域 ==================== */
+.pity-display {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 12px 20px;
+    border-radius: 15px;
+    border: 2px solid #f0e6d8;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    margin: 10px 0;
+}
+
+.pity-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #8b7355;
+}
+
+.pity-icon {
+    font-size: 16px;
+    letter-spacing: -2px;
+}
+
+.pity-text {
+    white-space: nowrap;
+}
+
+.pity-divider {
+    width: 1px;
+    height: 20px;
+    background: linear-gradient(to bottom, transparent, #e8d5c4, transparent);
+}
+
+/* 保底警告样式（接近保底时高亮） */
+.pity-warning {
+    color: #e74c3c !important;
+    animation: pity-pulse 1.5s ease-in-out infinite;
+}
+
+.pity-warning .pity-icon {
+    filter: drop-shadow(0 0 5px rgba(231, 76, 60, 0.5));
+}
+
+@keyframes pity-pulse {
+    0%, 100% { 
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% { 
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+}
+
+/* ==================== 抽卡动画页面 ==================== */

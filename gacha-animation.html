@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>抽卡动画 - 召唤阵</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            overflow: hidden;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #2d1b4e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 星空背景 */
+        .stars-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .star-dot {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* 召唤阵容器 */
+        .summon-container {
+            position: relative;
+            width: 450px;
+            height: 450px;
+        }
+
+        /* 魔法光环 */
+        .magic-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 3px solid transparent;
+            animation: magicSpin linear infinite;
+        }
+
+        .magic-ring:nth-child(1) {
+            width: 420px;
+            height: 420px;
+            border-top-color: #ffd700;
+            border-bottom-color: #ff6b9d;
+            animation-duration: 4s;
+        }
+
+        .magic-ring:nth-child(2) {
+            width: 370px;
+            height: 370px;
+            border-left-color: #00d4ff;
+            border-right-color: #ffd700;
+            animation-duration: 3s;
+            animation-direction: reverse;
+        }
+
+        .magic-ring:nth-child(3) {
+            width: 320px;
+            height: 320px;
+            border-top-color: #c44569;
+            border-bottom-color: #00d4ff;
+            animation-duration: 2s;
+        }
+
+        .magic-ring:nth-child(4) {
+            width: 270px;
+            height: 270px;
+            border-color: rgba(255,215,0,0.2);
+            animation-duration: 1.5s;
+            animation-direction: reverse;
+        }
+
+        @keyframes magicSpin {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* 魔法圆环装饰 */
+        .magic-circle-deco {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border: 2px dashed rgba(255,215,0,0.3);
+            border-radius: 50%;
+            animation: decoSpin 10s linear infinite;
+        }
+
+        @keyframes decoSpin {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* 中心宠物显示 */
+        .center-pet {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 160px;
+            height: 160px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5rem;
+            opacity: 0;
+            transition: all 0.5s;
+            z-index: 10;
+        }
+
+        .center-pet.show {
+            opacity: 1;
+            animation: petReveal 1s ease-out;
+        }
+
+        @keyframes petReveal {
+            0% { 
+                transform: translate(-50%, -50%) scale(0) rotate(-180deg); 
+                opacity: 0; 
+            }
+            50% { 
+                transform: translate(-50%, -50%) scale(1.3) rotate(0deg); 
+                opacity: 1; 
+            }
+            100% { 
+                transform: translate(-50%, -50%) scale(1) rotate(0deg); 
+                opacity: 1; 
+            }
+        }
+
+        /* 稀有度光芒 */
+        .rarity-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 350px;
+            height: 350px;
+            border-radius: 50%;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .rarity-glow.active {
+            animation: glowFlash 1.2s ease-out;
+        }
+
+        @keyframes glowFlash {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            30% { opacity: 1; }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(2.5); }
+        }
+
+        .rarity-glow.s-rank { 
+            background: radial-gradient(circle, rgba(255,215,0,0.9), transparent 70%);
+            box-shadow: 0 0 100px rgba(255,215,0,0.8);
+        }
+        .rarity-glow.a-rank { 
+            background: radial-gradient(circle, rgba(192,192,192,0.9), transparent 70%);
+            box-shadow: 0 0 100px rgba(192,192,192,0.8);
+        }
+        .rarity-glow.b-rank { 
+            background: radial-gradient(circle, rgba(205,127,50,0.9), transparent 70%);
+            box-shadow: 0 0 100px rgba(205,127,50,0.8);
+        }
+
+        /* 魔法粒子 */
+        .magic-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .magic-particle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: magicFloat 2s ease-out infinite;
+        }
+
+        @keyframes magicFloat {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0); opacity: 0; }
+        }
+
+        /* 文字提示 */
+        .summon-text {
+            position: absolute;
+            bottom: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ffd700;
+            letter-spacing: 8px;
+            text-align: center;
+            animation: textPulse 1.5s ease-in-out infinite;
+            white-space: nowrap;
+        }
+
+        @keyframes textPulse {
+            0%, 100% { opacity: 0.5; transform: translateX(-50%) scale(1); }
+            50% { opacity: 1; transform: translateX(-50%) scale(1.05); }
+        }
+
+        /* 加载动画点 */
+        .summon-dots {
+            position: absolute;
+            bottom: -120px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+        }
+
+        .summon-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            animation: dotBounce 1.4s ease-in-out infinite;
+        }
+
+        .summon-dot:nth-child(1) { background: #ffd700; animation-delay: 0s; }
+        .summon-dot:nth-child(2) { background: #ff6b9d; animation-delay: 0.2s; }
+        .summon-dot:nth-child(3) { background: #00d4ff; animation-delay: 0.4s; }
+
+        @keyframes dotBounce {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+            40% { transform: scale(1.2); opacity: 1; }
+        }
+
+        /* 控制按钮 */
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+        }
+
+        .ctrl-btn {
+            padding: 12px 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .ctrl-btn.trigger {
+            background: linear-gradient(135deg, #ff6b9d, #c44569);
+            color: white;
+            box-shadow: 0 10px 30px rgba(255,107,157,0.4);
+        }
+
+        .ctrl-btn.trigger:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(255,107,157,0.6);
+        }
+
+        .ctrl-btn.reset {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .ctrl-btn.reset:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* 结果卡片 */
+        .result-info {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        .result-info.show {
+            opacity: 1;
+            animation: infoReveal 0.8s ease-out;
+        }
+
+        @keyframes infoReveal {
+            from { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .result-info .pet-name {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #ffd700;
+            text-shadow: 0 4px 20px rgba(255,215,0,0.5);
+            margin-top: 15px;
+        }
+
+        .result-info .pet-rarity {
+            font-size: 1.2rem;
+            color: #ff6b9d;
+            margin-top: 8px;
+            padding: 5px 20px;
+            border: 1px solid #ff6b9d;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        /* 粒子爆发 */
+        .burst-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .burst-particle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: burst 1s ease-out forwards;
+        }
+
+        @keyframes burst {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 星空背景 -->
+    <div class="stars-bg" id="starsBg"></div>
+
+    <!-- 召唤阵 -->
+    <div class="summon-container">
+        <!-- 四层魔法光环 -->
+        <div class="magic-ring"></div>
+        <div class="magic-ring"></div>
+        <div class="magic-ring"></div>
+        <div class="magic-ring"></div>
+        
+        <!-- 装饰圆环 -->
+        <div class="magic-circle-deco"></div>
+        
+        <!-- 稀有度光芒 -->
+        <div class="rarity-glow" id="rarityGlow"></div>
+        
+        <!-- 中心宠物 -->
+        <div class="center-pet" id="centerPet">✨</div>
+        
+        <!-- 魔法粒子 -->
+        <div class="magic-particles" id="magicParticles"></div>
+        
+        <!-- 结果信息 -->
+        <div class="result-info" id="resultInfo">
+            <div class="pet-emoji" id="resultEmoji" style="font-size: 5rem;">🐕</div>
+            <div class="pet-name" id="resultName">博美</div>
+            <div class="pet-rarity" id="resultRarity">S级稀有</div>
+        </div>
+        
+        <!-- 粒子爆发容器 -->
+        <div class="burst-container" id="burstContainer"></div>
+        
+        <!-- 文字提示 -->
+        <div class="summon-text" id="summonText">召唤中...</div>
+        <div class="summon-dots">
+            <div class="summon-dot"></div>
+            <div class="summon-dot"></div>
+            <div class="summon-dot"></div>
+        </div>
+    </div>
+
+    <!-- 控制按钮 -->
+    <div class="controls">
+        <button class="ctrl-btn trigger" onclick="triggerGacha()">🎰 触发抽卡</button>
+        <button class="ctrl-btn reset" onclick="resetAnimation()">🔄 重置</button>
+    </div>
+
+    <script>
+        // 宠物数据
+        const dogs = [
+            { name: '博美', emoji: '🐕', rarity: 'S' },
+            { name: '萨摩耶', emoji: '🐕‍🦺', rarity: 'S' },
+            { name: '比熊', emoji: '🐩', rarity: 'A' },
+            { name: '柯基', emoji: '🐶', rarity: 'A' },
+            { name: '柴犬', emoji: '🐕‍🦺', rarity: 'A' },
+            { name: '边牧', emoji: '🐕', rarity: 'A' },
+            { name: '拉布拉多', emoji: '🦮', rarity: 'B' },
+            { name: '金毛', emoji: '🐕', rarity: 'B' },
+            { name: '哈士奇', emoji: '🐺', rarity: 'B' },
+            { name: '阿拉斯加', emoji: '🐕‍🦺', rarity: 'B' },
+            { name: '法斗', emoji: '🐶', rarity: 'B' },
+            { name: '泰迪', emoji: '🐩', rarity: 'B' }
+        ];
+
+        let isAnimating = false;
+
+        // 初始化星空
+        function initStars() {
+            const container = document.getElementById('starsBg');
+            for (let i = 0; i < 60; i++) {
+                const star = document.createElement('div');
+                star.className = 'star-dot';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                const size = Math.random() * 3 + 1;
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                star.style.animationDelay = Math.random() * 2 + 's';
+                container.appendChild(star);
+            }
+        }
+
+        // 创建魔法粒子
+        function createMagicParticles() {
+            const container = document.getElementById('magicParticles');
+            container.innerHTML = '';
+            
+            const colors = ['#ffd700', '#ff6b9d', '#00d4ff', '#c44569', '#9b59b6'];
+            
+            for (let i = 0; i < 25; i++) {
+                const p = document.createElement('div');
+                p.className = 'magic-particle';
+                p.style.background = colors[Math.floor(Math.random() * colors.length)];
+                
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 100 + Math.random() * 80;
+                p.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+                p.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+                p.style.animationDelay = (Math.random() * 0.8) + 's';
+                
+                container.appendChild(p);
+            }
+        }
+
+        // 触发抽卡动画
+        function triggerGacha() {
+            if (isAnimating) return;
+            isAnimating = true;
+            
+            const centerPet = document.getElementById('centerPet');
+            const rarityGlow = document.getElementById('rarityGlow');
+            const resultInfo = document.getElementById('resultInfo');
+            const summonText = document.getElementById('summonText');
+            
+            // 重置状态
+            centerPet.classList.remove('show');
+            centerPet.textContent = '✨';
+            centerPet.style.opacity = '0.5';
+            rarityGlow.className = 'rarity-glow';
+            resultInfo.classList.remove('show');
+            summonText.textContent = '召唤中...';
+            
+            // 清空爆发粒子
+            document.getElementById('burstContainer').innerHTML = '';
+            
+            // 创建粒子
+            createMagicParticles();
+            
+            // 1.5秒后显示结果
+            setTimeout(() => {
+                // 随机选择宠物
+                const rand = Math.random();
+                const rarity = rand < 0.1 ? 'S' : rand < 0.4 ? 'A' : 'B';
+                const candidates = dogs.filter(d => d.rarity === rarity);
+                const selected = candidates[Math.floor(Math.random() * candidates.length)];
+                
+                // 显示宠物
+                centerPet.textContent = selected.emoji;
+                centerPet.classList.add('show');
+                
+                // 稀有度光芒
+                const rarityClass = rarity === 'S' ? 's-rank' : rarity === 'A' ? 'a-rank' : 'b-rank';
+                rarityGlow.className = 'rarity-glow ' + rarityClass + ' active';
+                
+                // 文字变化
+                summonText.textContent = '召唤成功！';
+                
+                // 粒子爆发
+                createBurst(rarityClass);
+                
+                // 显示结果信息
+                setTimeout(() => {
+                    document.getElementById('resultEmoji').textContent = selected.emoji;
+                    document.getElementById('resultName').textContent = selected.name;
+                    document.getElementById('resultRarity').textContent = rarity + '级稀有';
+                    resultInfo.classList.add('show');
+                }, 500);
+                
+                isAnimating = false;
+            }, 1500);
+        }
+
+        // 创建粒子爆发
+        function createBurst(rarityClass) {
+            const container = document.getElementById('burstContainer');
+            container.innerHTML = '';
+            
+            const colors = {
+                's-rank': ['#ffd700', '#ff8c00', '#fff4cc'],
+                'a-rank': ['#c0c0c0', '#808080', '#e8e8e8'],
+                'b-rank': ['#cd7f32', '#8b4513', '#deb887']
+            };
+            
+            const colorArr = colors[rarityClass] || colors['b-rank'];
+            
+            for (let i = 0; i < 40; i++) {
+                const p = document.createElement('div');
+                p.className = 'burst-particle';
+                p.style.background = colorArr[Math.floor(Math.random() * colorArr.length)];
+                
+                const angle = (i / 40) * Math.PI * 2;
+                const distance = 150 + Math.random() * 100;
+                p.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+                p.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+                
+                container.appendChild(p);
+            }
+        }
+
+        // 重置动画
+        function resetAnimation() {
+            const centerPet = document.getElementById('centerPet');
+            const rarityGlow = document.getElementById('rarityGlow');
+            const resultInfo = document.getElementById('resultInfo');
+            const summonText = document.getElementById('summonText');
+            
+            centerPet.classList.remove('show');
+            centerPet.textContent = '✨';
+            centerPet.style.opacity = '0.5';
+            rarityGlow.className = 'rarity-glow';
+            resultInfo.classList.remove('show');
+            summonText.textContent = '召唤中...';
+            document.getElementById('burstContainer').innerHTML = '';
+            
+            isAnimating = false;
+        }
+
+        // 启动
+        initStars();
+        createMagicParticles();
+    </script>
+</body>
+</html>

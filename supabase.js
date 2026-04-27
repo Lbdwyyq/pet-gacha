@@ -1,12 +1,8 @@
 // Supabase 数据库配置和API
-// 从 supabase-config.js 读取配置
+// 需要先创建Supabase项目并获取URL和ANON_KEY
 
-// 优先使用全局配置对象（如果存在）
-const SUPABASE_URL = (typeof SUPABASE_CONFIG !== 'undefined' && SUPABASE_CONFIG.URL) ||
-                     'YOUR_SUPABASE_URL';
-
-const SUPABASE_ANON_KEY = (typeof SUPABASE_CONFIG !== 'undefined' && SUPABASE_CONFIG.ANON_KEY) ||
-                          'YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 
 // 初始化Supabase客户端
 let supabase = null;
